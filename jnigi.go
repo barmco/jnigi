@@ -50,7 +50,7 @@ func (o *ObjectRef) IsNil() bool {
 }
 
 func (o *ObjectRef) IsInstanceOf(env *Env, className string) (bool, error) {
-	class, err := env.callFindClass(className)
+	class, err := env.CallFindClass(className)
 	if err != nil {
 		return false, err
 	}
@@ -199,7 +199,7 @@ func (j *Env) handleException() error {
 }
 
 func (j *Env) NewObject(className string, args ...interface{}) (*ObjectRef, error) {
-	class, err := j.callFindClass(className)
+	class, err := j.CallFindClass(className)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (j *Env) NewObject(className string, args ...interface{}) (*ObjectRef, erro
 	return &ObjectRef{obj, className, false}, nil
 }
 
-func (j *Env) callFindClass(className string) (jclass, error) {
+func (j *Env) CallFindClass(className string) (jclass, error) {
 	if v, ok := j.classCache[className]; ok {
 		return v, nil
 	}
@@ -418,7 +418,7 @@ func (j *Env) toGoArray(array jobject, aType Type) (interface{}, error) {
 
 func (j *Env) ToObjectArray(objRefs []*ObjectRef, className string) (arrayRef *ObjectRef) {
 	arrayRef = &ObjectRef{className: className, isArray: true}
-	class, err := j.callFindClass(className)
+	class, err := j.CallFindClass(className)
 	if err != nil {
 		j.describeException()
 		exceptionClear(j.jniEnv)
@@ -962,7 +962,7 @@ func cleanUpArgs(ptr unsafe.Pointer) {
 }
 
 func (o *ObjectRef) getClass(env *Env) (class jclass, err error) {
-	class, err = env.callFindClass(o.className)
+	class, err = env.CallFindClass(o.className)
 	if err != nil {
 		return 0, err
 	}
@@ -1006,7 +1006,7 @@ func (o *ObjectRef) getClass(env *Env) (class jclass, err error) {
 		// note uses . for class name separator
 		if gotClass != "java.lang.Object" {
 			gotClass = strings.Replace(gotClass, ".", "/", -1)
-			class, err = env.callFindClass(gotClass)
+			class, err = env.CallFindClass(gotClass)
 			if err != nil {
 				return 0, err
 			}
@@ -1108,7 +1108,7 @@ func (o *ObjectRef) CallMethod(env *Env, methodName string, returnType interface
 }
 
 func (o *ObjectRef) CallNonvirtualMethod(env *Env, className string, methodName string, returnType interface{}, args ...interface{}) (interface{}, error) {
-	class, err := env.callFindClass(className)
+	class, err := env.CallFindClass(className)
 	if err != nil {
 		return nil, err
 	}
@@ -1198,7 +1198,7 @@ func (o *ObjectRef) CallNonvirtualMethod(env *Env, className string, methodName 
 }
 
 func (j *Env) CallStaticMethod(className string, methodName string, returnType interface{}, args ...interface{}) (interface{}, error) {
-	class, err := j.callFindClass(className)
+	class, err := j.CallFindClass(className)
 	if err != nil {
 		return nil, err
 	}
@@ -1441,7 +1441,7 @@ func (o *ObjectRef) SetField(env *Env, fieldName string, value interface{}) erro
 }
 
 func (j *Env) GetStaticField(className string, fieldName string, fieldType interface{}) (interface{}, error) {
-	class, err := j.callFindClass(className)
+	class, err := j.CallFindClass(className)
 	if err != nil {
 		return nil, err
 	}
@@ -1512,7 +1512,7 @@ func (j *Env) GetStaticField(className string, fieldName string, fieldType inter
 }
 
 func (j *Env) SetStaticField(className string, fieldName string, value interface{}) error {
-	class, err := j.callFindClass(className)
+	class, err := j.CallFindClass(className)
 	if err != nil {
 		return err
 	}
@@ -1575,7 +1575,7 @@ func (j *Env) SetStaticField(className string, fieldName string, value interface
 }
 
 func (j *Env) RegisterNative(className, methodName string, returnType interface{}, params []interface{}, fptr interface{}) error {
-	class, err := j.callFindClass(className)
+	class, err := j.CallFindClass(className)
 	if err != nil {
 		return err
 	}
