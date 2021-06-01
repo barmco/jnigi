@@ -8,8 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"unsafe"
 	"strings"
+	"unsafe"
 )
 
 // copy arguments in to C memory before passing to jni functions
@@ -142,10 +142,10 @@ func (j *JVM) DetachCurrentThread() error {
 }
 
 func (j *JVM) Destroy() error {
- 	if destroyJavaVM(j.javaVM) < 0 {
- 		return errors.New("JNIGI: destroyJavaVM error")
- 	}
- 	return nil
+	if destroyJavaVM(j.javaVM) < 0 {
+		return errors.New("JNIGI: destroyJavaVM error")
+	}
+	return nil
 }
 
 func (j *Env) GetJVM() (*JVM, error) {
@@ -216,7 +216,7 @@ func (j *Env) NewObject(className string, args ...interface{}) (*ObjectRef, erro
 		methodSig = calcSig
 	}
 
-	mid, err := j.callGetMethodID(false, class, "<init>", methodSig)
+	mid, err := j.CallGetMethodID(false, class, "<init>", methodSig)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,6 @@ func (j *Env) NewObject(className string, args ...interface{}) (*ObjectRef, erro
 	return &ObjectRef{obj, className, false}, nil
 }
 
-
 func (j *Env) callFindClass(className string) (jclass, error) {
 	if v, ok := j.classCache[className]; ok {
 		return v, nil
@@ -255,11 +254,11 @@ func (j *Env) callFindClass(className string) (jclass, error) {
 	ref := newGlobalRef(j.jniEnv, jobject(class))
 	deleteLocalRef(j.jniEnv, jobject(class))
 	j.classCache[className] = jclass(ref)
-	
+
 	return jclass(ref), nil
 }
 
-func (j *Env) callGetMethodID(static bool, class jclass, name, sig string) (jmethodID, error) {
+func (j *Env) CallGetMethodID(static bool, class jclass, name, sig string) (jmethodID, error) {
 	mnCstr := cString(name)
 	defer free(mnCstr)
 
@@ -444,7 +443,7 @@ func (j *Env) ToObjectArray(objRefs []*ObjectRef, className string) (arrayRef *O
 
 type ByteArray struct {
 	arr jbyteArray
-	n int
+	n   int
 }
 
 func (j *Env) NewByteArray(n int) *ByteArray {
@@ -553,7 +552,7 @@ func (j *Env) toJavaArray(src interface{}) (jobject, error) {
 		var ptr unsafe.Pointer
 		if copyToC {
 			ptr = malloc(uintptr(len(v)))
-		    defer free(ptr)
+			defer free(ptr)
 			data := (*(*[big]byte)(ptr))[:len(v)]
 			copy(data, v)
 		} else {
@@ -617,7 +616,7 @@ func (j *Env) toJavaArray(src interface{}) (jobject, error) {
 			return jobject(array), nil
 		}
 		var ptr unsafe.Pointer
-		if copyToC {		
+		if copyToC {
 			ptr = malloc(unsafe.Sizeof(int32(0)) * uintptr(len(v)))
 			defer free(ptr)
 			data := (*(*[big]int32)(ptr))[:len(v)]
@@ -694,14 +693,14 @@ func (j *Env) toJavaArray(src interface{}) (jobject, error) {
 			ptr = malloc(unsafe.Sizeof(float32(0)) * uintptr(len(v)))
 			defer free(ptr)
 			data := (*(*[big]float32)(ptr))[:len(v)]
-			copy(data, v)	
+			copy(data, v)
 		} else {
 			ptr = unsafe.Pointer(&v[0])
 		}
 		setFloatArrayRegion(j.jniEnv, array, jsize(0), jsize(len(v)), ptr)
 		if j.exceptionCheck() {
 			return 0, j.handleException()
-		}		
+		}
 		return jobject(array), nil
 	case []float64:
 		array := newDoubleArray(j.jniEnv, jsize(len(v)))
@@ -723,7 +722,7 @@ func (j *Env) toJavaArray(src interface{}) (jobject, error) {
 		setDoubleArrayRegion(j.jniEnv, array, jsize(0), jsize(len(v)), ptr)
 		if j.exceptionCheck() {
 			return 0, j.handleException()
-		}		
+		}
 		return jobject(array), nil
 	default:
 		return 0, errors.New("JNIGI unsupported array type")
@@ -793,7 +792,7 @@ func (j *Env) createArgs(args []interface{}) (ptr unsafe.Pointer, refs []jobject
 	if copyToC {
 		ptr = malloc(unsafe.Sizeof(uint64(0)) * uintptr(len(args)))
 		data := (*(*[big]uint64)(ptr))[:len(args)]
-		copy(data, argList)	
+		copy(data, argList)
 	} else {
 		ptr = unsafe.Pointer(&argList[0])
 	}
@@ -971,7 +970,7 @@ func (o *ObjectRef) getClass(env *Env) (class jclass, err error) {
 	// if object is java/lang/Object try to up class it
 	// there is an odd way to get the class name see: http://stackoverflow.com/questions/12719766/can-i-know-the-name-of-the-class-that-calls-a-jni-c-method
 	if o.className == "java/lang/Object" {
-		mid, err := env.callGetMethodID(false, class, "getClass", "()Ljava/lang/Class;")
+		mid, err := env.CallGetMethodID(false, class, "getClass", "()Ljava/lang/Class;")
 		if err != nil {
 			return 0, err
 		}
@@ -985,7 +984,7 @@ func (o *ObjectRef) getClass(env *Env) (class jclass, err error) {
 			return 0, env.handleException()
 		}
 		defer deleteLocalRef(env.jniEnv, jobject(objClass))
-		mid, err = env.callGetMethodID(false, objClass, "getName", "()Ljava/lang/String;")
+		mid, err = env.CallGetMethodID(false, objClass, "getName", "()Ljava/lang/String;")
 		if err != nil {
 			return 0, err
 		}
@@ -998,7 +997,7 @@ func (o *ObjectRef) getClass(env *Env) (class jclass, err error) {
 			return 0, errors.New("unexpected error getting object class name")
 		}
 		defer env.DeleteLocalRef(strObj)
-		b , err := strObj.CallMethod(env, "getBytes", Byte | Array, env.GetUTF8String())
+		b, err := strObj.CallMethod(env, "getBytes", Byte|Array, env.GetUTF8String())
 		if err != nil {
 			return 0, err
 		}
@@ -1041,7 +1040,7 @@ func (o *ObjectRef) CallMethod(env *Env, methodName string, returnType interface
 		methodSig = calcSig
 	}
 
-	mid, err := env.callGetMethodID(false, class, methodName, methodSig)
+	mid, err := env.CallGetMethodID(false, class, methodName, methodSig)
 	if err != nil {
 		return nil, err
 	}
@@ -1131,7 +1130,7 @@ func (o *ObjectRef) CallNonvirtualMethod(env *Env, className string, methodName 
 		methodSig = calcSig
 	}
 
-	mid, err := env.callGetMethodID(false, class, methodName, methodSig)
+	mid, err := env.CallGetMethodID(false, class, methodName, methodSig)
 	if err != nil {
 		return nil, err
 	}
@@ -1221,7 +1220,7 @@ func (j *Env) CallStaticMethod(className string, methodName string, returnType i
 		methodSig = calcSig
 	}
 
-	mid, err := j.callGetMethodID(true, class, methodName, methodSig)
+	mid, err := j.CallGetMethodID(true, class, methodName, methodSig)
 	if err != nil {
 		return nil, err
 	}
