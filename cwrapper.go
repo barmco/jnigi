@@ -622,6 +622,14 @@ void CallNonvirtualVoidMethodA(JNIEnv* env, jobject obj, jclass clazz, jmethodID
 	(*env)->CallNonvirtualVoidMethodA (env, obj, clazz, methodID, args);
 }
 
+jint MonitorEnter(JNIEnv* env, jobject obj) {
+	return (*env)->MonitorEnter (env, obj);
+}
+
+jint MonitorExit(JNIEnv* env, jobject obj) {
+	return (*env)->MonitorExit (env, obj);
+}
+
 */
 import "C"
 
@@ -1235,7 +1243,7 @@ func destroyJavaVM(vm unsafe.Pointer) jint {
 
 func getJavaVM(env unsafe.Pointer, vm unsafe.Pointer) jint {
 	return jint(C.GetJavaVM((*C.JNIEnv)(env), (**C.JavaVM)(vm)))
-} 
+}
 
 /* CallNonvirtual funcs... */
 
@@ -1277,4 +1285,12 @@ func callNonvirtualDoubleMethodA(env unsafe.Pointer, obj jobject, clazz jclass, 
 
 func callNonvirtualVoidMethodA(env unsafe.Pointer, obj jobject, clazz jclass, methodID jmethodID, args unsafe.Pointer) {
 	C.CallNonvirtualVoidMethodA((*C.JNIEnv)(env), C.jobject(unsafe.Pointer(obj)), C.jclass(unsafe.Pointer(clazz)), C.jmethodID(unsafe.Pointer(methodID)), (*C.jvalue)(args))
+}
+
+func monitorEnter(env unsafe.Pointer, obj jobject) jint {
+	return jint(C.MonitorEnter((*C.JNIEnv)(env), C.jobject(unsafe.Pointer(obj))))
+}
+
+func monitorExit(env unsafe.Pointer, obj jobject) jint {
+	return jint(C.MonitorExit((*C.JNIEnv)(env), C.jobject(unsafe.Pointer(obj))))
 }

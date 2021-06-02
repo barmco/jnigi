@@ -20,6 +20,7 @@ func TestAll(t *testing.T) {
 	PTestInstanceOf(t)
 	PTestByteArray(t)
 	PTestAttach(t)
+	PTestMonitor(t)
 	PTestGetJVM(t)
 	PTestEnsureLocalCapacity(t)
 	PTestPushPopLocalFrame(t)
@@ -180,6 +181,18 @@ func PTestAttach(t *testing.T) {
 	}()
 
 	<-x
+}
+
+func PTestMonitor(t *testing.T) {
+	obj, err := env.NewObject("java/lang/Object")
+	if err != nil {
+		t.Fatal(err)
+	}
+	x := env.MonitorEnter(obj)
+	y := env.MonitorExit(obj)
+	if !x || !y {
+		t.Fatalf("one of both monitor method was return negative value")
+	}
 }
 
 func PTestObjectArrays(t *testing.T) {

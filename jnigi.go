@@ -461,6 +461,14 @@ func (j *Env) NewByteArrayFromSlice(src []byte) *ByteArray {
 	return b
 }
 
+func (j *Env) MonitorEnter(o *ObjectRef) bool {
+	return monitorEnter(j.jniEnv, o.jobject) == 0
+}
+
+func (j *Env) MonitorExit(o *ObjectRef) bool {
+	return monitorExit(j.jniEnv, o.jobject) == 0
+}
+
 func (j *Env) NewByteArrayFromObject(o *ObjectRef) *ByteArray {
 	ba := &ByteArray{}
 	ba.SetObject(o)
